@@ -15,34 +15,37 @@ if (process.env.DATABASE_URL) {
 
     // Initialize PostgreSQL Schema
     const initDb = async () => {
-        const client = await pool.connect();
         try {
-            await client.query(`
-                CREATE TABLE IF NOT EXISTS whitelist (
-                    discord_id TEXT PRIMARY KEY,
-                    roblox_user TEXT,
-                    hwid TEXT,
-                    is_premium INTEGER DEFAULT 0,
-                    key TEXT
-                );
-                CREATE TABLE IF NOT EXISTS blacklists (
-                    discord_id TEXT PRIMARY KEY,
-                    reason TEXT,
-                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                );
-                CREATE TABLE IF NOT EXISTS keys (
-                    key TEXT PRIMARY KEY,
-                    type TEXT,
-                    used_by TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    expires_at TIMESTAMP
-                );
-            `);
-            console.log('✅ PostgreSQL Schema Verified.');
+            const client = await pool.connect();
+            try {
+                await client.query(`
+                    CREATE TABLE IF NOT EXISTS whitelist (
+                        discord_id TEXT PRIMARY KEY,
+                        roblox_user TEXT,
+                        hwid TEXT,
+                        is_premium INTEGER DEFAULT 0,
+                        key TEXT
+                    );
+                    CREATE TABLE IF NOT EXISTS blacklists (
+                        discord_id TEXT PRIMARY KEY,
+                        reason TEXT,
+                        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    );
+                    CREATE TABLE IF NOT EXISTS keys (
+                        key TEXT PRIMARY KEY,
+                        type TEXT,
+                        used_by TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        expires_at TIMESTAMP
+                    );
+                `);
+                console.log('✅ PostgreSQL Schema Verified.');
+            } finally {
+                client.release();
+            }
         } catch (err) {
-            console.error('❌ Error initializing PostgreSQL Schema:', err);
-        } finally {
-            client.release();
+            console.error('❌ Database connection failed:', err.message);
+            console.warn('⚠️ Bot will continue but DB calls will fail until connection is restored.');
         }
     };
     initDb();
@@ -109,6 +112,12 @@ const Database = {
     isValidKey: async (key) => {
         const query = `SELECT * FROM keys WHERE key = $1 AND (expires_at > CURRENT_TIMESTAMP OR expires_at IS NULL)`;
         const result = await pool.query(query, [key]);
+        return result.rows[0];
+    },
+
+    getWhitelistEntry: async (discordId) => {
+        const query = `SELECT * FROM whitelist WHERE discord_id = $1`;
+        const result = await pool.query(query, [discordId]);
         return result.rows[0];
     }
 };

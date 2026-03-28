@@ -111,11 +111,20 @@ const Commands = {
         const targetMember = message.mentions.members.first();
         const durationStr = args[1];
         const reason = args.slice(2).join(' ') || 'No reason provided';
-        if (!targetMember || !durationStr) return message.reply('Usage: `!mute @user duration reason` (duration in ms, e.g. 60000)');
-        
-        const duration = parseInt(durationStr);
-        await targetMember.timeout(duration, reason);
-        message.reply(`🔇 Muted ${targetMember.user.tag} for ${duration / 1000}s. Reason: ${reason}`);
+        if (!targetMember || !durationStr) return message.reply('Usage: `!mute @user <seconds> [reason]` (min 5s, e.g. `!mute @user 300 spamming`)');
+
+        const seconds = parseInt(durationStr);
+        if (isNaN(seconds) || seconds < 5) return message.reply('❌ Duration must be at least 5 seconds.');
+        if (seconds > 2419200) return message.reply('❌ Duration cannot exceed 28 days (2419200 seconds).');
+
+        try {
+            await targetMember.timeout(seconds * 1000, reason);
+            const display = seconds >= 60 ? `${Math.floor(seconds / 60)}m ${seconds % 60}s` : `${seconds}s`;
+            message.reply(`🔇 Muted ${targetMember.user.tag} for ${display}. Reason: ${reason}`);
+        } catch (err) {
+            if (err.code === 50013) return message.reply('❌ I don\'t have permission to mute that user (they may have a higher role than me).');
+            message.reply(`❌ Failed to mute: ${err.message}`);
+        }
     },
 
     'unmute': async (message, args) => {

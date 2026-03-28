@@ -45,8 +45,8 @@ function App() {
         <div className="logo">LUMINIA<br/><span style={{ fontSize: '0.6rem', letterSpacing: '0.2em' }}>ENGINEERED</span></div>
         <nav>
           <ul>
-            <li><a href="#hero">Home</a></li>
-            <li><a href="#commands">Key</a></li>
+            <li><a href="/">Home</a></li>
+            <li><a href="/key">Key</a></li>
             <li><a href="#commands">Scripts</a></li>
             <li><a href="#features">Profiles</a></li>
           </ul>

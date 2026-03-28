@@ -76,6 +76,18 @@ app.post('/api/generate-key', async (req, res) => {
     }
 });
 
+app.get('/api/get-key/:discordId', async (req, res) => {
+    try {
+        const { discordId } = req.params;
+        const record = await Database.getWhitelistEntry(discordId);
+        if (!record) return res.status(404).json({ success: false, message: 'No key found for that Discord ID.' });
+        res.status(200).json({ success: true, key: record.key, isPremium: record.is_premium === 1 });
+    } catch (error) {
+        console.error('Error fetching key:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch key.' });
+    }
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 API Server running on port ${PORT}`);
