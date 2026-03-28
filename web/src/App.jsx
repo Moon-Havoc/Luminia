@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Terminal, Shield, Zap, Key, Users, Lock, ChevronRight, ExternalLink, MessageSquare } from 'lucide-react'
 import './App.css'
@@ -15,29 +14,6 @@ const commands = [
 ]
 
 function App() {
-  const [key, setKey] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [expiresAt, setExpiresAt] = useState('')
-
-  const handleGenerateKey = async () => {
-    setLoading(true)
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      const response = await fetch(`${apiUrl}/api/generate-key`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      })
-      const data = await response.json()
-      if (data.success) {
-        setKey(data.key)
-        setExpiresAt(new Date(data.expiresAt).toLocaleString())
-      }
-    } catch (error) {
-      console.error('Error generating key:', error)
-      alert('Failed to generate key. Is the backend running?')
-    }
-    setLoading(false)
-  }
 
   return (
     <div className="app-container">
@@ -87,31 +63,13 @@ function App() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
           >
-            <button 
-              className="btn-cta primary" 
-              onClick={handleGenerateKey}
-              disabled={loading}
-            >
-              {loading ? 'Generating...' : key ? 'Key Generated' : 'Get Key'} <ChevronRight size={18} />
-            </button>
+            <a href="/key" className="btn-cta primary">
+              Get Key <ChevronRight size={18} />
+            </a>
             <button className="btn-cta outline"><Terminal size={18} /> Scripts</button>
             <button className="btn-cta outline"><MessageSquare size={18} /> Discord</button>
             <button className="btn-cta outline"><Zap size={18} /> Loader</button>
           </motion.div>
-
-          {key && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="key-display"
-            >
-              <div className="key-box">
-                <code>{key}</code>
-                <button onClick={() => navigator.clipboard.writeText(key)} className="copy-btn">Copy</button>
-              </div>
-              <p className="expiry-text">Expires at: {expiresAt}</p>
-            </motion.div>
-          )}
         </section>
 
         {/* Command Grid Section */}
