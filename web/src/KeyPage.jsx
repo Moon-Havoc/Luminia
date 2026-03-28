@@ -14,27 +14,18 @@ function KeyPage() {
     setLoading(true)
     setError('')
     setResult(null)
-
-    const apiUrl = import.meta.env.VITE_API_URL || window.location.origin
-    const endpoint = `${apiUrl.replace(/\/$/, '')}/api/get-key/${discordId.trim()}`
-
     try {
-      const res = await fetch(endpoint)
-      if (!res.ok) {
-        const serverMsg = await res.text()
-        throw new Error(`Server responded ${res.status}: ${serverMsg}`)
-      }
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+      const res = await fetch(`${apiUrl}/api/get-key/${discordId.trim()}`)
       const data = await res.json()
       if (data.success) {
         setResult(data)
       } else {
         setError(data.message || 'No key found.')
       }
-    } catch (err) {
-      console.error('Key lookup failed:', err)
-      setError(`Could not reach the server at ${endpoint}. ${err.message}`)
+    } catch {
+      setError('Could not reach the server. Try again later.')
     }
-
     setLoading(false)
   }
 
